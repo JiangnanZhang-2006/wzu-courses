@@ -3,3 +3,11 @@ jr/
 .DS_Store
 .clangd
 .vscode/
+
+# C/C++ build artifacts
+build/
+*.o
+*.obj
+*.out
+outDebug
+*.dSYM/
