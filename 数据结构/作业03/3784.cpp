@@ -35,6 +35,7 @@ Status MergeStack(const LinkStack* S1, const LinkStack* S2, LinkStack* S3);
 Status RemoveDuplicate(LinkStack* S);
 Status ReverseTop(LinkStack* S, int k);
 Status GetRangeSum(const LinkStack* S, int low, int high, int* sum);
+Status InterleaveStack(const LinkStack* S1, const LinkStack* S2, LinkStack* S3);
 
 int main()
 {
@@ -156,20 +157,33 @@ Status CopyStack(const LinkStack* S, LinkStack* T) {
     return OK;
 }
 
-void PrintStackReverse(const StackNode* node, int is_last) {
-    if (node == NULL) return;
-    PrintStackReverse(node->next, 0);
-    if (is_last) printf("%d\n", node->data);
-    else printf("%d ", node->data);
-}
-
 void PrintStack(const LinkStack* S) {
-    if (S == NULL || IsEmpty(S)) {
+    if (S == NULL || S->top == NULL) {
         printf("NULL\n");
         return;
     }
-    StackNode* curr = S->top;
-    PrintStackReverse(curr, 1);
+    int n = 0;
+    for (StackNode* p = S->top; p != NULL; p = p->next) n++;
+    ElementType* buf = (ElementType*)malloc(sizeof(ElementType) * (size_t)n);
+    if (buf != NULL) {
+        StackNode* p = S->top;
+        for (int i = n - 1; i >= 0; i--) {
+            buf[i] = p->data;
+            p = p->next;
+        }
+        for (int i = 0; i < n - 1; i++) printf("%d ", buf[i]);
+        printf("%d\n", buf[n - 1]);
+        free(buf);
+        return;
+    }
+    /* malloc 失败时避免崩溃：O(n^2) 按栈底到栈顶输出 */
+    for (int i = 0; i < n; i++) {
+        StackNode* p = S->top;
+        for (int j = 0; j < n - 1 - i; j++) p = p->next;
+        if (i > 0) printf(" ");
+        printf("%d", p->data);
+    }
+    printf("\n");
 }
 
 Status ReverseStack(LinkStack* S) {
@@ -356,5 +370,80 @@ Status GetRangeSum(const LinkStack* S, int low, int high, int* sum) {
         s += arr[i];
     free(arr);
     *sum = s;
+    return OK;
+}
+
+Status InterleaveStack(const LinkStack* S1, const LinkStack* S2, LinkStack* S3) {
+    if (S1 == NULL || S2 == NULL || S3 == NULL) return ERROR;
+
+    int n1 = GetSize(S1);
+    int n2 = GetSize(S2);
+    int total = n1 + n2;
+
+    ElementType* arr1 = NULL;
+    ElementType* arr2 = NULL;
+    ElementType* merged = NULL;
+
+    if (n1 > 0) {
+        arr1 = (ElementType*)malloc(sizeof(ElementType) * (size_t)n1);
+        if (arr1 == NULL) return ERROR;
+        StackNode* c = S1->top;
+        for (int i = n1 - 1; i >= 0; i--) {
+            arr1[i] = c->data;
+            c = c->next;
+        }
+    }
+    if (n2 > 0) {
+        arr2 = (ElementType*)malloc(sizeof(ElementType) * (size_t)n2);
+        if (arr2 == NULL) {
+            free(arr1);
+            return ERROR;
+        }
+        StackNode* c = S2->top;
+        for (int i = n2 - 1; i >= 0; i--) {
+            arr2[i] = c->data;
+            c = c->next;
+        }
+    }
+    if (total > 0) {
+        merged = (ElementType*)malloc(sizeof(ElementType) * (size_t)total);
+        if (merged == NULL) {
+            free(arr1);
+            free(arr2);
+            return ERROR;
+        }
+        int i = 0, j = 0, k = 0;
+        while (i < n1 && j < n2) {
+            merged[k++] = arr1[i++];
+            merged[k++] = arr2[j++];
+        }
+        while (i < n1) merged[k++] = arr1[i++];
+        while (j < n2) merged[k++] = arr2[j++];
+    }
+
+    LinkStack* new_stack = InitStack();
+    if (new_stack == NULL) {
+        free(arr1);
+        free(arr2);
+        free(merged);
+        return ERROR;
+    }
+    for (int t = 0; t < total; t++) {
+        if (Push(new_stack, merged[t]) == ERROR) {
+            DestroyStack(&new_stack);
+            free(arr1);
+            free(arr2);
+            free(merged);
+            return ERROR;
+        }
+    }
+
+    Clear(S3);
+    S3->top = new_stack->top;
+    S3->size = new_stack->size;
+    free(new_stack);
+    free(arr1);
+    free(arr2);
+    free(merged);
     return OK;
 }
