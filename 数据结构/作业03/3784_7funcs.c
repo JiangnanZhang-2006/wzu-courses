@@ -1,10 +1,9 @@
 /*
- * 本地自测 3801：对照题面示例 1～6，不提交评测机。
- * 编译运行：gcc -std=c11 -Wall -Wextra -o /tmp/3801test 3801_local_test.c && /tmp/3801test
+ * 作业3-B10：仅含题面 7 个函数（与 3784.cpp 中实现一致）
+ * 若评测系统已预置类型与 #include，按平台说明只粘贴下方函数体即可。
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 typedef int ElementType;
 
@@ -20,7 +19,8 @@ typedef struct {
 
 typedef enum { OK = 1, ERROR = 0 } Status;
 
-/* 与 3784.cpp 中 7 个函数保持一致（提交时只交这 7 段） */
+/******************** 7 个函数 ********************/
+
 LinkStack* InitStack(void) {
     LinkStack* S = (LinkStack*)malloc(sizeof(LinkStack));
     if (S == NULL) return NULL;
@@ -94,8 +94,10 @@ void DestroyStack(LinkStack** pS) {
 Status InterleaveStack(const LinkStack* S1, const LinkStack* S2, LinkStack* S3) {
     if (S1 == NULL || S2 == NULL || S3 == NULL) return ERROR;
 
-    int n1 = GetSize(S1);
-    int n2 = GetSize(S2);
+    int n1 = 0;
+    for (StackNode* p = S1->top; p != NULL; p = p->next) n1++;
+    int n2 = 0;
+    for (StackNode* p = S2->top; p != NULL; p = p->next) n2++;
     int total = n1 + n2;
 
     if (total == 0) {
@@ -169,88 +171,4 @@ Status InterleaveStack(const LinkStack* S1, const LinkStack* S2, LinkStack* S3) 
     free(arr2);
     free(merged);
     return OK;
-}
-
-/* 按「栈底→栈顶」顺序 a[0]..a[n-1]，依次 Push，得到正确链栈 */
-static void build_bottom_to_top(LinkStack* S, const int* a, int n) {
-    for (int i = 0; i < n; i++) Push(S, a[i]);
-}
-
-static int run_one(const char* name, const int* s1, int n1, const int* s2, int n2,
-                   const char* expect_line) {
-    LinkStack* S1 = InitStack();
-    LinkStack* S2 = InitStack();
-    LinkStack* S3 = InitStack();
-    build_bottom_to_top(S1, s1, n1);
-    build_bottom_to_top(S2, s2, n2);
-
-    Status st = InterleaveStack(S1, S2, S3);
-    char* buf = NULL;
-    size_t len = 0;
-    FILE* mem = open_memstream(&buf, &len);
-    if (mem == NULL) {
-        fprintf(stderr, "open_memstream failed\n");
-        DestroyStack(&S1);
-        DestroyStack(&S2);
-        DestroyStack(&S3);
-        return 0;
-    }
-    /* 复刻 PrintStack 格式，写入内存便于 strcmp */
-    if (S3 == NULL || S3->top == NULL) {
-        fprintf(mem, "NULL\n");
-    } else {
-        int n = 0;
-        for (StackNode* p = S3->top; p != NULL; p = p->next) n++;
-        int* b = (int*)malloc(sizeof(int) * (size_t)n);
-        StackNode* p = S3->top;
-        for (int i = n - 1; i >= 0; i--) {
-            b[i] = p->data;
-            p = p->next;
-        }
-        for (int i = 0; i < n - 1; i++) fprintf(mem, "%d ", b[i]);
-        fprintf(mem, "%d\n", b[n - 1]);
-        free(b);
-    }
-    fclose(mem);
-
-    int ok = (st == OK) && buf && (strcmp(buf, expect_line) == 0);
-    printf("[%s] %s\n", ok ? "OK" : "FAIL", name);
-    if (!ok) {
-        printf("  expect (with \\n): %s", expect_line);
-        printf("  got   : %s", buf ? buf : "(null)");
-        printf("  status: %d\n", (int)st);
-    }
-    free(buf);
-
-    DestroyStack(&S1);
-    DestroyStack(&S2);
-    DestroyStack(&S3);
-    return ok;
-}
-
-int main(void) {
-    int fail = 0;
-
-    int e1a[] = {1, 2, 3};
-    int e1b[] = {4, 5, 6};
-    if (!run_one("例1 等长", e1a, 3, e1b, 3, "1 4 2 5 3 6\n")) fail++;
-
-    int e2a[] = {1, 2, 3, 4, 5};
-    int e2b[] = {6, 7};
-    if (!run_one("例2 S1较长", e2a, 5, e2b, 2, "1 6 2 7 3 4 5\n")) fail++;
-
-    int e3a[] = {1, 2};
-    int e3b[] = {3, 4, 5, 6, 7};
-    if (!run_one("例3 S2较长", e3a, 2, e3b, 5, "1 3 2 4 5 6 7\n")) fail++;
-
-    int e4b[] = {1, 2, 3};
-    if (!run_one("例4 S1空", NULL, 0, e4b, 3, "1 2 3\n")) fail++;
-
-    int e5a[] = {1, 2, 3};
-    if (!run_one("例5 S2空", e5a, 3, NULL, 0, "1 2 3\n")) fail++;
-
-    if (!run_one("例6 都空", NULL, 0, NULL, 0, "NULL\n")) fail++;
-
-    printf("\n总计: %s\n", fail ? "存在失败" : "6/6 与题面一致");
-    return fail ? 1 : 0;
 }

@@ -214,7 +214,7 @@ Status GetMin(const LinkStack* S, ElementType* min) {
 Status IsSymmetric(const LinkStack* S) {
     if (S == NULL) return ERROR;
     if (IsEmpty(S)) return OK;
-    int *arr = (int *)malloc(sizeof(int) * static_cast<int>(S->size));
+    int *arr = (int *)malloc(sizeof(int) * (int)S->size);
     if (arr == NULL) return ERROR;
     StackNode* curr = S->top;
     for (int i = 0; i < S->size; i++) {
@@ -222,7 +222,10 @@ Status IsSymmetric(const LinkStack* S) {
         curr = curr->next;
     }
     for (int i = 0; i < S->size / 2; i++) {
-        if (arr[i] != arr[S->size - i - 1]) return ERROR;
+        if (arr[i] != arr[S->size - i - 1]) {
+            free(arr);
+            return ERROR;
+        }
     }
     free(arr);
     return OK;
@@ -310,7 +313,6 @@ Status RemoveDuplicate(LinkStack* S) {
             return ERROR;
         }
     }
-    int count = 0;
     while (!IsEmpty(temp)) {
         ElementType x;
         Pop(temp, &x);
@@ -320,11 +322,9 @@ Status RemoveDuplicate(LinkStack* S) {
                 DestroyStack(&temp);
                 return ERROR;
             }
-            count++;
         }
     }
     DestroyStack(&temp);
-    S->size -= count;
     return OK;
 }
 
@@ -376,9 +376,17 @@ Status GetRangeSum(const LinkStack* S, int low, int high, int* sum) {
 Status InterleaveStack(const LinkStack* S1, const LinkStack* S2, LinkStack* S3) {
     if (S1 == NULL || S2 == NULL || S3 == NULL) return ERROR;
 
-    int n1 = GetSize(S1);
-    int n2 = GetSize(S2);
+    /* 按链表实际结点数计数，避免 size 与链不一致时出错 */
+    int n1 = 0;
+    for (StackNode* p = S1->top; p != NULL; p = p->next) n1++;
+    int n2 = 0;
+    for (StackNode* p = S2->top; p != NULL; p = p->next) n2++;
     int total = n1 + n2;
+
+    if (total == 0) {
+        Clear(S3);
+        return OK;
+    }
 
     ElementType* arr1 = NULL;
     ElementType* arr2 = NULL;
@@ -405,13 +413,13 @@ Status InterleaveStack(const LinkStack* S1, const LinkStack* S2, LinkStack* S3) 
             c = c->next;
         }
     }
-    if (total > 0) {
-        merged = (ElementType*)malloc(sizeof(ElementType) * (size_t)total);
-        if (merged == NULL) {
-            free(arr1);
-            free(arr2);
-            return ERROR;
-        }
+    merged = (ElementType*)malloc(sizeof(ElementType) * (size_t)total);
+    if (merged == NULL) {
+        free(arr1);
+        free(arr2);
+        return ERROR;
+    }
+    {
         int i = 0, j = 0, k = 0;
         while (i < n1 && j < n2) {
             merged[k++] = arr1[i++];
