@@ -163,7 +163,7 @@ void DestroyQueue(LinkQueue** pQ) {
 }
 
 Status ConcatQueue(LinkQueue* Q1, LinkQueue* Q2) {
-    if (Q1 == NULL || Q2 == NULL) return ERROR;
+    if (Q1 == NULL || Q2 == NULL || Q1 == Q2) return ERROR;
     if (!IsEmpty(Q2)) {
         if (IsEmpty(Q1)) {
             Q1->front = Q2->front;
