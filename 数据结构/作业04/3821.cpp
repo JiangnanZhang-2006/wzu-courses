@@ -422,12 +422,16 @@ int MyStackPop(MyStack* obj) {
     }
     ElementType x;
     DeQueue(obj->q1, &x);
+    LinkQueue* t = obj->q1;
+    obj->q1 = obj->q2;
+    obj->q2 = t;
     return x;
 }
 
 int MyStackTop(MyStack* obj) {
     if (obj == NULL) return -1;
-    return obj->q1->front->data;
+    if (IsEmpty(obj->q1)) return -1;
+    return obj->q1->rear->data;
 }
 
 void MyStackFree(MyStack* obj) {
