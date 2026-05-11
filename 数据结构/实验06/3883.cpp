@@ -36,6 +36,23 @@ typedef struct {
     int encodedBits;     /* 编码后总位数 */
 } BatchEncodeResult;
 
+typedef struct {
+    int height1;      /* 树1高度 */
+    int height2;      /* 树2高度 */
+    int wpl1;         /* 树1 WPL */
+    int wpl2;         /* 树2 WPL */
+    CodeTable* ct1;   /* 树1编码表 */
+    CodeTable* ct2;   /* 树2编码表 */
+} CompareResult;
+
+typedef struct {
+    int nodeCount;    /* 总节点数 */
+    int leafCount;    /* 叶子节点数 */
+    int height;       /* 树高度 */
+    int wpl;          /* 带权路径长度 */
+    CodeTable* ct;    /* 编码表 */
+} TreeReport;
+
 /* 辅助函数声明（已在测试代码中实现，你可以直接调用） */
 void SelectMinTwo(HuffmanTree* ht, int end, int* s1, int* s2);
 
@@ -59,6 +76,7 @@ int VerifyEncodeDecode(char chars[], int weights[], int n, const char* testStr);
 BatchEncodeResult* BatchEncode(char chars[], int weights[], int n, char* strs[], int m);
 void DestroyBatchEncodeResult(BatchEncodeResult** pResult);
 char* QueryCodeTable(CodeTable* ct, char queryType, const char* queryParam);
+CompareResult* CompareHuffmanTrees(HuffmanTree* ht1, HuffmanTree* ht2);
 
 int main()
 {
@@ -347,6 +365,21 @@ int VerifyEncodeDecode(char chars[], int weights[], int n, const char* testStr) 
     } else return -1;
 }
 
+void DestroyBatchEncodeResult(BatchEncodeResult** pResult) {
+    if (pResult == NULL || *pResult == NULL) return;
+    if ((*pResult)->encodedStrs != NULL) {
+        for (int i = 0; i < (*pResult)->count; i++) {
+            free((*pResult)->encodedStrs[i]);
+            (*pResult)->encodedStrs[i] = NULL;
+        }
+        free((*pResult)->encodedStrs);
+        (*pResult)->encodedStrs = NULL;
+    }
+    free(*pResult);
+    *pResult = NULL;
+    return;
+}
+
 BatchEncodeResult* BatchEncode(char chars[], int weights[], int n, char* strs[], int m) {
     if (chars == NULL || weights == NULL || strs == NULL || n <= 0 || m <= 0)
         return NULL;
@@ -388,33 +421,22 @@ BatchEncodeResult* BatchEncode(char chars[], int weights[], int n, char* strs[],
     return pber;
 }
 
-void DestroyBatchEncodeResult(BatchEncodeResult** pResult) {
-    if (pResult == NULL || *pResult == NULL) return;
-    if ((*pResult)->encodedStrs != NULL) {
-        for (int i = 0; i < (*pResult)->count; i++) {
-            free((*pResult)->encodedStrs[i]);
-            (*pResult)->encodedStrs[i] = NULL;
-        }
-        free((*pResult)->encodedStrs);
-        (*pResult)->encodedStrs = NULL;
-    }
-    free(*pResult);
-    *pResult = NULL;
-    return;
-}
-
 char* QueryCodeTable(CodeTable* ct, char queryType, const char* queryParam) {
     if (ct == NULL || queryParam == NULL || !(queryType == 'C' || queryType == 'E'))
         return NULL;
     if (queryType == 'C') {
-        char *pqct = FindCodeByChar(ct, queryParam[0]);
-        if (pqct == NULL) {
-            char* pqct = (char*)calloc(100, sizeof(char));
-            if (pqct == NULL) return NULL;
-            strcpy(pqct, "NULL");
-            return pqct;
+        char *code = FindCodeByChar(ct, queryParam[0]);
+        if (code == NULL) {
+            char* out = (char*)calloc(100, sizeof(char));
+            if (out == NULL) return NULL;
+            strcpy(out, "NULL");
+            return out;
         }
-        return pqct;
+        size_t len = strlen(code);
+        char* out = (char*)malloc(len + 1);
+        if (out == NULL) return NULL;
+        memcpy(out, code, len + 1);
+        return out;
     } else {
         char c = FindCharByCode(ct, queryParam);
         char* pqct = (char*)calloc(100, sizeof(char));
@@ -423,4 +445,29 @@ char* QueryCodeTable(CodeTable* ct, char queryType, const char* queryParam) {
         pqct[1] = '\0';
         return pqct;
     }
+}
+
+CompareResult* CompareHuffmanTrees(HuffmanTree* ht1, HuffmanTree* ht2) {
+    if (ht1 == NULL || ht2 == NULL) return NULL;
+    CompareResult* pcr = (CompareResult*)malloc(sizeof(CompareResult));
+    if (pcr == NULL) return NULL;
+    pcr->height1 = GetHeight(ht1);
+    pcr->height2 = GetHeight(ht2);
+    pcr->wpl1 = GetWPL(ht1);
+    pcr->wpl2 = GetWPL(ht2);
+    pcr->ct1 = CreateCodeTable(ht1);
+    pcr->ct2 = CreateCodeTable(ht2);
+    return pcr;
+}
+
+TreeReport* GenerateTreeReport(HuffmanTree* ht) {
+    if (ht == NULL || ht->nodes == NULL || ht->n <= 0) return NULL;
+    TreeReport* ptr = (TreeReport*)malloc(sizeof(TreeReport));
+    if (ptr == NULL) return NULL;
+    ptr->nodeCount = GetNodeCount(ht);
+    ptr->leafCount = ht->n;
+    ptr->height = GetHeight(ht);
+    ptr->wpl = GetWPL(ht);
+    ptr->ct = CreateCodeTable(ht);
+    return ptr;
 }
