@@ -31,6 +31,7 @@ int GetWidth(BiTree T);
 int GetSingleChildCount(BiTree T);
 int IsEqual(BiTree T1, BiTree T2);
 int FindPath(BiTree T, ElementType x, ElementType path[], int* pathLen);
+int FindParentPath(BiTree T, ElementType x, ElementType path[], int* len);
 ElementType GetMax(BiTree T);
 ElementType GetMin(BiTree T);
 int IsSameStructure(BiTree T1, BiTree T2);
@@ -110,7 +111,7 @@ BiTree CreateTree(const char* str) {
     return node;
 }
 
-static BiTree BuildTreeByPreorder(const char* str, size_t* pos) {
+BiTree BuildTreeByPreorder(const char* str, size_t* pos) {
     if (str[*pos] == '\0')
         return NULL;
     char c = str[*pos];
@@ -516,6 +517,49 @@ int FindPath(BiTree T, ElementType x, ElementType path[], int* pathLen) {
     return len != 0 ? 1 : 0;
 }
 
+/*
+ * 求「先序遍历中第一个 data==x 的结点」的父指针；根无父则 NULL。
+ * 不能先写「若左/右孩子 data==x 则返回当前结点」：当根与孩子同为 x 时，
+ * 先序先命中根，答案应为 NULL；若先比孩子会得到根，与先序语义不一致。
+ */
+ BiTree FindParentWithParent(BiTree T, BiTree parent, ElementType x){
+    if (T == NULL)
+        return NULL;
+    if (T->data == x)
+        return parent;
+    BiTree p = FindParentWithParent(T->lchild, T, x);
+    if (p != NULL)
+        return p;
+    return FindParentWithParent(T->rchild, T, x);
+}
+
+int SubFindPathToNode(BiTree T, BiTree target, ElementType path[], int depth) {
+    if (T == NULL)
+        return 0;
+    path[depth] = T->data;
+    if (T == target)
+        return depth + 1;
+    int plen = SubFindPathToNode(T->lchild, target, path, depth + 1);
+    if (plen != 0)
+        return plen;
+    return SubFindPathToNode(T->rchild, target, path, depth + 1);
+}
+
+int FindParentPath(BiTree T, ElementType x, ElementType path[], int* len) {
+    if (len == NULL || path == NULL)
+        return 0;
+    if (IsEmpty(T))
+        return 0;
+    if (FindNode(T, x) == NULL)
+        return 0;
+    BiTree parent = FindParentWithParent(T, NULL, x);
+    if (parent == NULL)
+        return 0;
+    int plen = SubFindPathToNode(T, parent, path, 0);
+    *len = plen;
+    return 1;
+}
+
 ElementType GetMax(BiTree T) {
     if (IsEmpty(T))
         return '#';
@@ -592,22 +636,6 @@ int IsSameTree(BiTree T1, BiTree T2) {
         return 0;
     return IsSameTree(T1->lchild, T2->lchild) &&
            IsSameTree(T1->rchild, T2->rchild);
-}
-
-/*
- * 求「先序遍历中第一个 data==x 的结点」的父指针；根无父则 NULL。
- * 不能先写「若左/右孩子 data==x 则返回当前结点」：当根与孩子同为 x 时，
- * 先序先命中根，答案应为 NULL；若先比孩子会得到根，与先序语义不一致。
- */
-static BiTree FindParentWithParent(BiTree T, BiTree parent, ElementType x){
-    if (T == NULL)
-        return NULL;
-    if (T->data == x)
-        return parent;
-    BiTree p = FindParentWithParent(T->lchild, T, x);
-    if (p != NULL)
-        return p;
-    return FindParentWithParent(T->rchild, T, x);
 }
 
 BiTree FindParent(BiTree T, ElementType x){
@@ -861,7 +889,7 @@ void PrintByLevel(BiTree T) {
     return;
 }
 
-static int GetMaxHeightDiffDfs(BiTree T, int *best) {
+int GetMaxHeightDiffDfs(BiTree T, int *best) {
     if (T == NULL) return 0;
     int lh = GetMaxHeightDiffDfs(T->lchild, best);
     int rh = GetMaxHeightDiffDfs(T->rchild, best);
