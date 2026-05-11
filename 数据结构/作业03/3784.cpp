@@ -376,82 +376,55 @@ Status GetRangeSum(const LinkStack* S, int low, int high, int* sum) {
 Status InterleaveStack(const LinkStack* S1, const LinkStack* S2, LinkStack* S3) {
     if (S1 == NULL || S2 == NULL || S3 == NULL) return ERROR;
 
-    /* 按链表实际结点数计数，避免 size 与链不一致时出错 */
+    /* 按链表结点计数（与 InterleaveStack.cpp 中 GetSize 一致，且不依赖可能不同步的 size 域） */
     int n1 = 0;
     for (StackNode* p = S1->top; p != NULL; p = p->next) n1++;
     int n2 = 0;
     for (StackNode* p = S2->top; p != NULL; p = p->next) n2++;
-    int total = n1 + n2;
+    int n = n1 + n2;
 
-    if (total == 0) {
+    if (n == 0) {
         Clear(S3);
         return OK;
     }
 
-    ElementType* arr1 = NULL;
-    ElementType* arr2 = NULL;
-    ElementType* merged = NULL;
+    ElementType* buf = (ElementType*)malloc(sizeof(ElementType) * (size_t)n);
+    if (buf == NULL) return ERROR;
 
-    if (n1 > 0) {
-        arr1 = (ElementType*)malloc(sizeof(ElementType) * (size_t)n1);
-        if (arr1 == NULL) return ERROR;
-        StackNode* c = S1->top;
-        for (int i = n1 - 1; i >= 0; i--) {
-            arr1[i] = c->data;
-            c = c->next;
-        }
-    }
-    if (n2 > 0) {
-        arr2 = (ElementType*)malloc(sizeof(ElementType) * (size_t)n2);
-        if (arr2 == NULL) {
-            free(arr1);
-            return ERROR;
-        }
-        StackNode* c = S2->top;
-        for (int i = n2 - 1; i >= 0; i--) {
-            arr2[i] = c->data;
-            c = c->next;
-        }
-    }
-    merged = (ElementType*)malloc(sizeof(ElementType) * (size_t)total);
-    if (merged == NULL) {
-        free(arr1);
-        free(arr2);
-        return ERROR;
-    }
-    {
-        int i = 0, j = 0, k = 0;
-        while (i < n1 && j < n2) {
-            merged[k++] = arr1[i++];
-            merged[k++] = arr2[j++];
-        }
-        while (i < n1) merged[k++] = arr1[i++];
-        while (j < n2) merged[k++] = arr2[j++];
-    }
+    int i = 0, k = 0;
+    StackNode* p1 = S1->top;
+    StackNode* p2 = S2->top;
 
-    LinkStack* new_stack = InitStack();
-    if (new_stack == NULL) {
-        free(arr1);
-        free(arr2);
-        free(merged);
-        return ERROR;
-    }
-    for (int t = 0; t < total; t++) {
-        if (Push(new_stack, merged[t]) == ERROR) {
-            DestroyStack(&new_stack);
-            free(arr1);
-            free(arr2);
-            free(merged);
-            return ERROR;
+    if (n2 > n1) {
+        for (int j = 0; j < n2 - n1; j++) {
+            buf[k++] = p2->data;
+            p2 = p2->next;
         }
+    }
+    if (n1 > n2) {
+        for (int j = 0; j < n1 - n2; j++) {
+            buf[k++] = p1->data;
+            p1 = p1->next;
+        }
+    }
+    for (; p1 != NULL || p2 != NULL;) {
+        if (i & 1) {
+            buf[k++] = p1->data;
+            p1 = p1->next;
+        } else {
+            buf[k++] = p2->data;
+            p2 = p2->next;
+        }
+        i++;
     }
 
     Clear(S3);
-    S3->top = new_stack->top;
-    S3->size = new_stack->size;
-    free(new_stack);
-    free(arr1);
-    free(arr2);
-    free(merged);
+    for (i = 0; i < n; i++) {
+        if (Push(S3, buf[i]) == ERROR) {
+            free(buf);
+            return ERROR;
+        }
+    }
+    free(buf);
     return OK;
 }
