@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +26,12 @@ typedef struct {
 HuffmanNode* FindMinAndRemove(HuffmanNode** nodes, int* size);
 HuffmanTree CreateHuffmanTree(char chars[], int weights[], int n);
 CodeTable* CreateCodeTable(HuffmanTree root);
+int GetWPL(HuffmanTree root);
+int IsEmpty(HuffmanTree root);
+int GetHeight(HuffmanTree root);
+int GetLeafCount(HuffmanTree root);
+int GetWPLHelper(HuffmanTree node, int depth);
+
 
 int main()
 {
@@ -107,9 +114,31 @@ HuffmanTree CreateHuffmanTree(char chars[], int weights[], int n) {
     return root;
 }
 
+static CodeTable* s_code_table_build = NULL;
+
 void SubCreateCodeTable(HuffmanTree root, char* code, int depth) {
-    if (root == NULL) return;
-    
+    if (root == NULL || s_code_table_build == NULL) return;
+    if (root->lchild == NULL && root->rchild == NULL) {
+        CodeNode* node = (CodeNode*)malloc(sizeof(CodeNode));
+        if (node == NULL) return;
+        node->ch = root->data;
+        if (depth == 0) {
+            node->code[0] = '0';
+            node->code[1] = '\0';
+        } else {
+            code[depth] = '\0';
+            strncpy(node->code, code, sizeof(node->code) - 1);
+            node->code[sizeof(node->code) - 1] = '\0';
+        }
+        node->next = s_code_table_build->head;
+        s_code_table_build->head = node;
+        s_code_table_build->n++;
+        return;
+    }
+    code[depth] = '0';
+    SubCreateCodeTable(root->lchild, code, depth + 1);
+    code[depth] = '1';
+    SubCreateCodeTable(root->rchild, code, depth + 1);
 }
 
 CodeTable* CreateCodeTable(HuffmanTree root) {
@@ -118,6 +147,172 @@ CodeTable* CreateCodeTable(HuffmanTree root) {
     if (pct == NULL) return NULL;
     pct->head = NULL;
     pct->n = 0;
-    SubCreateCodeTable(root, "", 0);
+    s_code_table_build = pct;
+    char buf[256];
+    buf[0] = '\0';
+    SubCreateCodeTable(root, buf, 0);
+    s_code_table_build = NULL;
     return pct;
+}
+
+int IsEmpty(HuffmanTree root) {
+    if (root == NULL) return 1;
+    return 0;
+}
+
+int GetHeight(HuffmanTree root) {
+    if (IsEmpty(root)) return 0;
+    int rheight = GetHeight(root->rchild), lheight = GetHeight(root->lchild);
+    if (rheight > lheight) return rheight + 1;
+    return lheight + 1;
+}
+
+int GetLeafCount(HuffmanTree root) {
+    if (IsEmpty(root)) return 0;
+    if (IsEmpty(root->lchild) && IsEmpty(root->rchild)) return 1;
+    return GetLeafCount(root->lchild) + GetLeafCount(root->rchild);
+}
+
+int GetWPLHelper(HuffmanTree node, int depth) {
+    if (node == NULL) return 0;
+    if (IsEmpty(node->lchild) && IsEmpty(node->rchild)) return depth * node->weight;
+    return GetWPLHelper(node->lchild, depth + 1) + GetWPLHelper(node->rchild, depth + 1);
+}
+
+int GetWPL(HuffmanTree root) {
+    if (root == NULL) return 0;
+    return GetWPLHelper(root, 0);
+}
+
+char* FindCodeByChar(CodeTable* ct, char ch) {
+    if (ct == NULL || ct->head == NULL) return NULL;
+    CodeNode* p = ct->head;
+    while (p != NULL) {
+        if (p->ch == ch) return p->code;
+        p = p->next;
+    }
+    return NULL;
+}
+
+void FindMaxWeightCharHelper(HuffmanTree root, int* maxWeight, char* maxChar) {
+    if (root == NULL) return;
+    if (IsEmpty(root->lchild) && IsEmpty(root->rchild)) {
+        if (*maxWeight < root->weight) {
+            *maxWeight = root->weight;
+            *maxChar = root->data;
+        }
+        return;
+    }
+    FindMaxWeightCharHelper(root->lchild, maxWeight, maxChar);
+    FindMaxWeightCharHelper(root->rchild, maxWeight, maxChar);
+}
+
+char FindMaxWeightChar(HuffmanTree root) {
+    if (root == NULL) return '\0';
+    int maxWeight = 0;
+    char maxChar = '\0';
+    FindMaxWeightCharHelper(root, &maxWeight, &maxChar);
+    return maxChar;
+}
+
+char* EncodeChar(CodeTable* ct, char ch) {
+    if (ct == NULL || ch == '\0') return NULL;
+    return FindCodeByChar(ct, ch);
+}
+
+char* EncodeString(CodeTable* ct, const char* str) {
+    if (ct == NULL || str == NULL) return NULL;
+
+    size_t total = 1;
+    for (const char* p = str; *p; p++) {
+        char* c = FindCodeByChar(ct, *p);
+        if (c == NULL) return NULL;
+        total += strlen(c);
+    }
+
+    char* result = (char*)malloc(total);
+    if (result == NULL) return NULL;
+
+    char* dest = result;
+    for (const char* p = str; *p; p++) {
+        char* c = FindCodeByChar(ct, *p);
+        if (c == NULL) {
+            free(result);
+            return NULL;
+        }
+        size_t clen = strlen(c);
+        memcpy(dest, c, clen);
+        dest += clen;
+    }
+    *dest = '\0';
+    return result;
+}
+
+char DecodeChar(HuffmanTree root, const char* code, int* pos) {
+    if (root == NULL || code == NULL || pos == NULL) return '\0';
+    if (*pos >= strlen(code)) return '\0';
+    HuffmanTree node = root;
+    while (node->lchild != NULL || node->rchild != NULL) {
+        if (code[*pos] == '0') node = node->lchild;
+        else node = node->rchild;
+        (*pos)++;
+    }
+    return node->data;
+}
+
+char* DecodeString(HuffmanTree root, const char* code) {
+    if (root == NULL || code == NULL) return NULL;
+    size_t len = strlen(code);
+    char* result = (char*)malloc(len + 1);
+    if (result == NULL) return NULL;
+    char* dest = result;
+    int pos = 0;
+    while (pos < len) {
+        char ch = DecodeChar(root, code, &pos);
+        if (ch == '\0') break;
+        *dest++ = ch;
+    }
+    *dest = '\0';
+    return result;
+}
+
+void DestroyHuffmanTree(HuffmanTree* pRoot) {
+    if (pRoot == NULL || *pRoot == NULL) return;
+    DestroyHuffmanTree(&(*pRoot)->lchild);
+    DestroyHuffmanTree(&(*pRoot)->rchild);
+    free(*pRoot);
+    *pRoot = NULL;
+}
+
+void DestroyCodeTable(CodeTable** pCt) {
+    if (pCt == NULL || *pCt == NULL) return;
+    CodeNode* p = (*pCt)->head;
+    while (p != NULL) {
+        CodeNode* next = p->next;
+        free(p);
+        p = next;
+    }
+    free(*pCt);
+    *pCt = NULL;
+}
+
+int GetFixedBits(int n) {
+    if (n <= 1) return 1;
+    int bits = 0;
+    int cap = 1;
+    while (cap < n) {
+        cap <<= 1;
+        bits++;
+    }
+    return bits;
+}
+
+double CalcCompressionRate(HuffmanTree root, int n) {
+    if (root == NULL || n <= 0) return 0.0;
+    int totalWeight = root->weight;
+    int fixedBits = GetFixedBits(n);
+    int fixedEncodingBits = totalWeight * fixedBits;
+    if (fixedEncodingBits <= 0) return 0.0;
+    int wpl = GetWPL(root);
+    return (double)(fixedEncodingBits - wpl) / (double)fixedEncodingBits;
 }

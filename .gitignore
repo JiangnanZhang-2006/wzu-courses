@@ -5,6 +5,8 @@ jr/
 .vscode/
 English/
 .vpn-test-http/
+团/
+演讲稿/
 
 # C/C++ build artifacts
 build/
@@ -15,11 +17,12 @@ outDebug
 *.dSYM/
 
 # chore
-团员发展答辩稿.md
 wenzhou-university-emblem.png
 ConcatQueue.cpp
 InterleaveStack.cpp
 MyStack.cpp
+*.pdf
+*.json
 
 # agent
 .cursor/
