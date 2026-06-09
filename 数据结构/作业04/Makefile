@@ -1,10 +1,10 @@
-# 本地编译：make 或 make 3821
+# 本地编译：make 或 make 链队列
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Wextra -O2
 
-3821: 3821.cpp
+链队列: 链队列.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
 .PHONY: clean
 clean:
-	rm -f 3821
+	rm -f 链队列
