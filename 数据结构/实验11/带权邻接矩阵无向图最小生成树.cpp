@@ -68,6 +68,14 @@ static int CompareEdges(int u1, int v1, int w1, int u2, int v2, int w2)
     return max1 - max2;
 }
 
+static int ComparePrimCandidate(
+    int from1, int to1, int w1, int from2, int to2, int w2)
+{
+    if (w1 != w2) return w1 - w2;
+    if (to1 != to2) return to1 - to2;
+    return from1 - from2;
+}
+
 static UnionFind* UFCreate(int size)
 {
     if (size <= 0) return NULL;
@@ -319,12 +327,9 @@ int Prim(WGraph* g, int edges[][3], int* cnt)
                     bestTo = v;
                     bestW = weight;
                 } else {
-                    int cmp = CompareEdges(u, v, weight, bestFrom, bestTo, bestW);
+                    int cmp = ComparePrimCandidate(
+                        u, v, weight, bestFrom, bestTo, bestW);
                     if (cmp < 0) {
-                        bestFrom = u;
-                        bestTo = v;
-                        bestW = weight;
-                    } else if (cmp == 0 && u < bestFrom) {
                         bestFrom = u;
                         bestTo = v;
                         bestW = weight;

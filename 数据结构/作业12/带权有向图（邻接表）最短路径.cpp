@@ -202,27 +202,35 @@ int GetVertexCount(WDALGraph* g)
     return g->size;
 }
 
-static void DFSVisitHelper(WDALGraph* g, int v, int* visited, int* neighbors)
-{
-    visited[v] = 1;
-    int count = GetNeighbors(g, v, neighbors);
-    if (count <= 0) return;
-
-    for (int i = 0; i < count; i++) {
-        int nb = neighbors[i];
-        if (!visited[nb]) DFSVisitHelper(g, nb, visited, neighbors);
-    }
-}
-
 void DFSVisit(WDALGraph* g, int start, int* visited)
 {
-    if (g == NULL || visited == NULL || !IsValidVertex(g, start)) return;
+    if (g == NULL || visited == NULL || start < 0 || start >= g->size) return;
 
     int* neighbors = (int*)malloc(sizeof(int) * g->size);
-    if (neighbors == NULL) return;
+    int* stack = (int*)malloc(sizeof(int) * g->size);
+    if (neighbors == NULL || stack == NULL) {
+        free(neighbors);
+        free(stack);
+        visited[start] = 1;
+        return;
+    }
 
-    DFSVisitHelper(g, start, visited, neighbors);
+    int top = 0;
+    stack[top++] = start;
+    while (top > 0) {
+        int v = stack[--top];
+        if (visited[v]) continue;
+        visited[v] = 1;
+        int count = GetNeighbors(g, v, neighbors);
+        if (count <= 0) continue;
+        for (int i = count - 1; i >= 0; i--) {
+            int nb = neighbors[i];
+            if (!visited[nb]) stack[top++] = nb;
+        }
+    }
+
     free(neighbors);
+    free(stack);
 }
 
 int IsReachable(WDALGraph* g, int u, int v)
