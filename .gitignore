@@ -24,6 +24,12 @@ MyStack.cpp
 *.pdf
 *.json
 
+# test
+*_test
+
+# scripts
+_scripts/
+
 # agent
 .cursor/
 AGENTS.md

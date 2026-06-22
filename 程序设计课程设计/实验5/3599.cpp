@@ -85,18 +85,63 @@ public:
         if (dc == 1) return "Right";
         return "";
     }
-    void do_move(char soldier, int to_row, int to_col) {
+    void do_soldier_move(char soldier, int to_row, int to_col) {
         auto t = find_pos(soldier);
         int r = get<0>(t), c = get<1>(t);
         board[r][c] = '.';
         board[to_row][to_col] = soldier;
+    }
+    bool can_cao_move_up(int to_row, int to_col) {
+        auto t = find_pos('@');
+        int r = get<0>(t), c = get<1>(t);
+        if (r < 0 || r == 0) return false;
+        if (board[r - 1][c] != '.' || board[r - 1][c + 1] != '.') return false;
+        return to_row == r - 1 && (to_col == c || to_col == c + 1);
+    }
+    bool can_cao_move_down(int to_row, int to_col) {
+        auto t = find_pos('@');
+        int r = get<0>(t), c = get<1>(t);
+        if (r < 0 || r + 2 >= ROWS) return false;
+        if (board[r + 2][c] != '.' || board[r + 2][c + 1] != '.') return false;
+        return to_row == r + 2 && (to_col == c || to_col == c + 1);
+    }
+    bool can_cao_move_left(int to_row, int to_col) {
+        auto t = find_pos('@');
+        int r = get<0>(t), c = get<1>(t);
+        if (r < 0 || c == 0) return false;
+        if (board[r][c - 1] != '.' || board[r + 1][c - 1] != '.') return false;
+        return (to_row == r || to_row == r + 1) && to_col == c - 1;
+    }
+    void do_cao_move_up() {
+        auto t = find_pos('@');
+        int r = get<0>(t), c = get<1>(t);
+        board[r - 1][c] = '@';
+        board[r - 1][c + 1] = '@';
+        board[r + 1][c] = '.';
+        board[r + 1][c + 1] = '.';
+    }
+    void do_cao_move_down() {
+        auto t = find_pos('@');
+        int r = get<0>(t), c = get<1>(t);
+        board[r + 2][c] = '@';
+        board[r + 2][c + 1] = '@';
+        board[r][c] = '.';
+        board[r][c + 1] = '.';
+    }
+    void do_cao_move_left() {
+        auto t = find_pos('@');
+        int r = get<0>(t), c = get<1>(t);
+        board[r][c - 1] = '@';
+        board[r + 1][c - 1] = '@';
+        board[r][c + 1] = '.';
+        board[r + 1][c + 1] = '.';
     }
 };
 
 int main() {
     Klotski klotski;
     int x, y;
-    char selected = 0;  // no selection
+    char selected = 0;
 
     while (cin >> x >> y && (x != -1 || y != -1)) {
         int row, col, i, j;
@@ -115,7 +160,16 @@ int main() {
         if (c == '.') {
             if (selected && Klotski::is_soldier(selected) && klotski.can_soldier_move_to(selected, row, col)) {
                 cout << "Click at (" << x << "," << y << "),Land in (" << i << "," << j << "),Chess " << selected << " Move " << klotski.move_direction(selected, row, col) << endl;
-                klotski.do_move(selected, row, col);
+                klotski.do_soldier_move(selected, row, col);
+            } else if (selected == '@' && klotski.can_cao_move_up(row, col)) {
+                cout << "Click at (" << x << "," << y << "),Land in (" << i << "," << j << "),Chess @ Move Up" << endl;
+                klotski.do_cao_move_up();
+            } else if (selected == '@' && klotski.can_cao_move_down(row, col)) {
+                cout << "Click at (" << x << "," << y << "),Land in (" << i << "," << j << "),Chess @ Move Down" << endl;
+                klotski.do_cao_move_down();
+            } else if (selected == '@' && klotski.can_cao_move_left(row, col)) {
+                cout << "Click at (" << x << "," << y << "),Land in (" << i << "," << j << "),Chess @ Move Left" << endl;
+                klotski.do_cao_move_left();
             } else {
                 selected = 0;
                 cout << "Click at (" << x << "," << y << "),Land in (" << i << "," << j << "),Unselect Chess" << endl;
@@ -127,6 +181,13 @@ int main() {
         if (Klotski::is_soldier(c)) {
             selected = c;
             cout << "Click at (" << x << "," << y << "),Land in (" << i << "," << j << "),Select Chess " << c << endl;
+            klotski.print();
+            continue;
+        }
+
+        if (c == '@') {
+            selected = '@';
+            cout << "Click at (" << x << "," << y << "),Land in (" << i << "," << j << "),Select Chess @" << endl;
             klotski.print();
             continue;
         }
