@@ -96,7 +96,7 @@ int GetMin(MinHeap* h) {
 }
 
 int GetSize(MinHeap* h) {
-    if (h == NULL) return 0;
+    if (h == NULL || h->data == NULL) return 0;
     return h->size;
 }
 
@@ -235,29 +235,29 @@ int FindKth(MinHeap* h, int k) {
     return result;
 }
 
-// void HeapStats(MinHeap* h, HeapStatResult* result) {
-//     if (result == NULL) return;
-//     if (h == NULL || h->size == 0) {
-//         result->min_val = -1;
-//         result->max_val = -1;
-//         result->sum = 0;
-//         result->count = 0;
-//         return;
-//     }
-//     int min_val = h->data[1];
-//     int max_val = h->data[1];
-//     int sum = 0;
-//     for (int i = 1; i <= h->size; i++) {
-//         int v = h->data[i];
-//         if (v < min_val) min_val = v;
-//         if (v > max_val) max_val = v;
-//         sum += v;
-//     }
-//     result->min_val = min_val;
-//     result->max_val = max_val;
-//     result->sum = sum;
-//     result->count = h->size;
-// }
+void HeapStats(MinHeap* h, HeapStatResult* result) {
+    if (result == NULL) return;
+    if (h == NULL || h->size == 0) {
+        result->min_val = -1;
+        result->max_val = -1;
+        result->sum = 0;
+        result->count = 0;
+        return;
+    }
+    int min_val = h->data[1];
+    int max_val = h->data[1];
+    int sum = 0;
+    for (int i = 1; i <= h->size; i++) {
+        int v = h->data[i];
+        if (v < min_val) min_val = v;
+        if (v > max_val) max_val = v;
+        sum += v;
+    }
+    result->min_val = min_val;
+    result->max_val = max_val;
+    result->sum = sum;
+    result->count = h->size;
+}
 
 int DeleteIf(MinHeap* h, int threshold) {
     if (h == NULL || h->size == 0) return 0;

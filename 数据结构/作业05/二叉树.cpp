@@ -238,7 +238,7 @@ int GetHeight(BiTree T) {
 }
 
 int GetNodeCount(BiTree T) {
-    if (IsEmpty(T))
+    if (T == NULL)
         return 0;
     return 1 + GetNodeCount(T->lchild) + GetNodeCount(T->rchild);
 }
@@ -473,9 +473,14 @@ int GetWidth(BiTree T) {
 }
 
 int GetSingleChildCount(BiTree T) {
-    int a = 0, b = 0, c = 0;
-    CountDegree(T, &a, &b, &c);
-    return b;
+    int count;
+    if (T == NULL) return 0;
+    count = 0;
+    if ((T->lchild != NULL && T->rchild == NULL) ||
+        (T->lchild == NULL && T->rchild != NULL)) {
+        count = 1;
+    }
+    return count + GetSingleChildCount(T->lchild) + GetSingleChildCount(T->rchild);
 }
 
 int IsEqual(BiTree T1, BiTree T2) {
@@ -638,15 +643,39 @@ int IsSameTree(BiTree T1, BiTree T2) {
            IsSameTree(T1->rchild, T2->rchild);
 }
 
-BiTree FindParent(BiTree T, ElementType x){
-    return FindParentWithParent(T, NULL, x);
+BiTree FindParent(BiTree T, ElementType x) {
+    if (T == NULL) return NULL;
+    if (T->lchild != NULL && T->lchild->data == x) return T;
+    if (T->rchild != NULL && T->rchild->data == x) return T;
+    BiTree p = FindParent(T->lchild, x);
+    if (p != NULL) return p;
+    return FindParent(T->rchild, x);
+}
+
+static BiTree FindSiblingNode(BiTree root, ElementType val) {
+    if (root == NULL) return NULL;
+    if (root->data == val) return root;
+    BiTree p = FindSiblingNode(root->lchild, val);
+    if (p != NULL) return p;
+    return FindSiblingNode(root->rchild, val);
+}
+
+static BiTree FindSiblingParent(BiTree root, BiTree node) {
+    if (root == NULL || node == NULL || root == node) return NULL;
+    if (root->lchild == node || root->rchild == node) return root;
+    BiTree p = FindSiblingParent(root->lchild, node);
+    if (p != NULL) return p;
+    return FindSiblingParent(root->rchild, node);
 }
 
 BiTree FindSibling(BiTree T, ElementType x) {
-    BiTNode *parent = FindParentWithParent(T, NULL, x);
+    if (T == NULL) return NULL;
+    BiTree node = FindSiblingNode(T, x);
+    if (node == NULL || node == T) return NULL;
+    BiTree parent = FindSiblingParent(T, node);
     if (parent == NULL) return NULL;
-    if (parent->lchild == NULL ^ parent->rchild == NULL) return NULL;
-    return parent->lchild->data == x ? parent->rchild : parent->lchild;
+    if (parent->lchild == node) return parent->rchild;
+    return parent->lchild;
 }
 
 BiTree FindLeftmostLeaf(BiTree T) {
@@ -712,6 +741,7 @@ int GetNodeDepth(BiTree T, ElementType x) {
 BiTree CopyTree(BiTree T) {
     if (T == NULL) return NULL;
     BiTNode *p = (BiTNode*)malloc(sizeof(BiTNode));
+    if (p == NULL) return NULL;
     p->data = T->data;
     p->lchild = CopyTree(T->lchild);
     p->rchild = CopyTree(T->rchild);

@@ -23,12 +23,16 @@ InterleaveStack.cpp
 MyStack.cpp
 *.pdf
 *.json
+ac_progress.txt
 
 # test
 *_test
 
 # scripts
 _scripts/
+
+# 单题提交片段（每题一个 cpp，不纳入版本库）
+tmp/
 
 # agent
 .cursor/

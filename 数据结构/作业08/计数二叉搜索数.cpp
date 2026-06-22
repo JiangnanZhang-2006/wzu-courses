@@ -92,23 +92,11 @@ void InOrder(BSTNode* root, int* result, int* cnt) {
     InOrder(root->right, result, cnt);
 }
 
-// int GetCount(BSTNode* root) {
-//     if (root == NULL) return 0;
-//     return GetCount(root->left) + GetCount(root->right) + root->count;
-// }
-
-// int GetHeight(BSTNode* root) {
-//     if (root == NULL) return 0;
-//     int leftHeight = GetHeight(root->left);
-//     int rightHeight = GetHeight(root->right);
-//     return leftHeight > rightHeight ? leftHeight + 1 : rightHeight + 1;
-// }
-
-int GetWidth(BSTNode* root) {
+int GetHeight(BSTNode* root) {
     if (root == NULL) return 0;
-    int leftWidth = GetWidth(root->left);
-    int rightWidth = GetWidth(root->right);
-    return leftWidth > rightWidth ? leftWidth + 1 : rightWidth + 1;
+    int leftHeight = GetHeight(root->left);
+    int rightHeight = GetHeight(root->right);
+    return leftHeight > rightHeight ? leftHeight + 1 : rightHeight + 1;
 }
 
 BSTNode* GetMin(BSTNode* root) {

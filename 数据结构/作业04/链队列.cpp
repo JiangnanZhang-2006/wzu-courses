@@ -359,32 +359,32 @@ void PrintPascalTriangle(int n) {
     DestroyQueue(&Q);
 }
 
-// RecentCounter* RecentCounterCreate(void) {
-//     RecentCounter* obj = (RecentCounter*)malloc(sizeof(RecentCounter));
-//     if (obj == NULL) return NULL;
-//     obj->queue = InitQueue();
-//     if (obj->queue == NULL) {
-//         free(obj);
-//         return NULL;
-//     }
-//     return obj;
-// }
+RecentCounter* RecentCounterCreate(void) {
+    RecentCounter* obj = (RecentCounter*)malloc(sizeof(RecentCounter));
+    if (obj == NULL) return NULL;
+    obj->queue = InitQueue();
+    if (obj->queue == NULL) {
+        free(obj);
+        return NULL;
+    }
+    return obj;
+}
 
-// int RecentCounterPing(RecentCounter* obj, int t) {
-//     if (obj == NULL) return -1;
-//     EnQueue(obj->queue, t);
-//     while (obj->queue->front->data < t - 3000) {
-//         ElementType x;
-//         DeQueue(obj->queue, &x);
-//     }
-//     return obj->queue->size;
-// }
+int RecentCounterPing(RecentCounter* obj, int t) {
+    if (obj == NULL || obj->queue == NULL) return -1;
+    EnQueue(obj->queue, t);
+    while (!IsEmpty(obj->queue) && obj->queue->front->data < t - 3000) {
+        ElementType x;
+        DeQueue(obj->queue, &x);
+    }
+    return obj->queue->size;
+}
 
-// void RecentCounterFree(RecentCounter* obj) {
-//     if (obj == NULL) return;
-//     DestroyQueue(&obj->queue);
-//     free(obj);
-// }
+void RecentCounterFree(RecentCounter* obj) {
+    if (obj == NULL) return;
+    DestroyQueue(&obj->queue);
+    free(obj);
+}
 
 MyStack* MyStackCreate(void) {
     MyStack* obj = (MyStack*)malloc(sizeof(MyStack));
