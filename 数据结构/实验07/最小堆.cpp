@@ -38,12 +38,12 @@ MinHeap* CreateMinHeap(int capacity) {
     return heap;
 }
 
-int IsEmpty(MinHeap* h) {
+static int IsEmpty(MinHeap* h) {
     if (h == NULL || h->size == 0) return 1;
     return 0;
 }
 
-int IsFull(MinHeap* h) {
+static int IsFull(MinHeap* h) {
     if (h->size == h->capacity) return 1;
     return 0;
 }
@@ -109,7 +109,7 @@ int DeleteMin(MinHeap* h) {
     return min;
 }
 
-MinHeap* BuildHeap(int arr[], int n, int capacity) {
+static MinHeap* BuildHeapFromArray(int arr[], int n, int capacity) {
     if (arr == NULL || n <= 0 || capacity < n) return NULL;
     MinHeap* heap = CreateMinHeap(capacity);
     if (heap == NULL) return NULL;
@@ -121,6 +121,10 @@ MinHeap* BuildHeap(int arr[], int n, int capacity) {
         SiftDown(heap, i);
     }
     return heap;
+}
+
+MinHeap* BuildHeap(int arr[], int n, int capacity) {
+    return BuildHeapFromArray(arr, n, capacity);
 }
 
 void HeapSort(MinHeap* h, int* result) {
@@ -178,7 +182,7 @@ MinHeap* BuildHeapUnique(int arr[], int n) {
         }
     }
     if (m == 0) return NULL;
-    return BuildHeap(vals, m, m);
+    return BuildHeapFromArray(vals, m, m);
 }
 
 MinHeap* MergeHeap(MinHeap* h1, MinHeap* h2) {
@@ -205,7 +209,7 @@ MinHeap* MergeHeap(MinHeap* h1, MinHeap* h2) {
         }
     }
 
-    MinHeap* heap = BuildHeap(vals, total, total);
+    MinHeap* heap = BuildHeapFromArray(vals, total, total);
     free(vals);
     return heap;
 }
@@ -298,5 +302,5 @@ MinHeap* FromSortedArray(int arr[], int n) {
     for (int i = 0; i < n - 1; i++) {
         if (arr[i] >= arr[i + 1]) return NULL;
     }
-    return BuildHeap(arr, n, n);
+    return BuildHeapFromArray(arr, n, n);
 }

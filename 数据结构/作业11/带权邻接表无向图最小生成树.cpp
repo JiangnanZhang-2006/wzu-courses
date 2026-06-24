@@ -315,7 +315,6 @@ int Kruskal(WALGraph* g, int edges[][3], int* cnt)
         if (cnt != NULL) *cnt = 0;
         return 0;
     }
-    if (!IsConnected(g)) return -1;
 
     int maxEdges = g->edgeCount;
     EdgeInfo* edgeList = (EdgeInfo*)malloc(sizeof(EdgeInfo) * maxEdges);
@@ -378,7 +377,6 @@ int Prim(WALGraph* g, int edges[][3], int* cnt)
         if (cnt != NULL) *cnt = 0;
         return 0;
     }
-    if (!IsConnected(g)) return -1;
 
     int* inMST = (int*)calloc(g->size, sizeof(int));
     int* key = (int*)malloc(sizeof(int) * g->size);
@@ -451,7 +449,7 @@ int Prim(WALGraph* g, int edges[][3], int* cnt)
     for (int i = 1; i < g->size; i++) {
         int from = parent[i];
         int to = i;
-        int w = GetWeight(g, from, to);
+        int w = key[i];
         if (from < to) {
             edges[mstCnt][0] = from;
             edges[mstCnt][1] = to;

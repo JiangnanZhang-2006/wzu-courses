@@ -210,11 +210,11 @@ int TopoSortKahn(WDGraph* g, int* seq)
     return count;
 }
 
-static int dfsCycle;
-static int dfsTopCnt;
-static int* dfsPost;
-static int* dfsColor;
-static WDGraph* dfsGraph;
+static int dfsCycle = 0;
+static int dfsTopCnt = 0;
+static int* dfsPost = NULL;
+static int* dfsColor = NULL;
+static WDGraph* dfsGraph = NULL;
 
 static void dfsTopoVisit(int u)
 {

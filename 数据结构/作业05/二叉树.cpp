@@ -141,6 +141,33 @@ int IsEmpty(BiTree T) {
     return 0;
 }
 
+typedef struct {
+    BiTNode *data[105];
+    int front;
+    int/rear;
+} BiTreeQueue;
+
+static void btq_init(BiTreeQueue *q) {
+    q->front = 0;
+    q->rear = 0;
+}
+
+static void btq_enqueue(BiTreeQueue *q, BiTNode *x) {
+    q->data[q->rear++] = x;
+}
+
+static BiTNode *btq_dequeue(BiTreeQueue *q) {
+    return q->data[q->front++];
+}
+
+static int btq_empty(BiTreeQueue *q) {
+    return q->front == q->rear;
+}
+
+static int btq_size(BiTreeQueue *q) {
+    return q->rear - q->front;
+}
+
 void PreOrder(BiTree T) {
     if (!IsEmpty(T)) {
         printf("%c", T->data);
@@ -167,71 +194,30 @@ void PostOrder(BiTree T) {
 
 void LevelOrder(BiTree T) {
     if (IsEmpty(T)) return;
-    class QueueClass{
-        private:
-            BiTNode *data[105];
-            int front;
-            int rear;
-        public:
-            QueueClass() {
-                front = 0;
-                rear = 0;
-            }
-            void enqueue(BiTNode *x) {
-                data[rear++] = x;
-            }
-            BiTNode *dequeue() {
-                return data[front++];
-            }
-            int isEmpty() {
-                return front == rear;
-            }
-    };
-    QueueClass queue;
-    queue.enqueue(T);
-    while (!queue.isEmpty()) {
-        BiTNode *cur = queue.dequeue();
+    BiTreeQueue queue;
+    btq_init(&queue);
+    btq_enqueue(&queue, T);
+    while (!btq_empty(&queue)) {
+        BiTNode *cur = btq_dequeue(&queue);
         printf("%c", cur->data);
-        if (!IsEmpty(cur->lchild)) queue.enqueue(cur->lchild);
-        if (!IsEmpty(cur->rchild)) queue.enqueue(cur->rchild);
+        if (!IsEmpty(cur->lchild)) btq_enqueue(&queue, cur->lchild);
+        if (!IsEmpty(cur->rchild)) btq_enqueue(&queue, cur->rchild);
     }
 }
 
 int GetHeight(BiTree T) {
     if (IsEmpty(T)) return 0;
-    class QueueClass{
-        private:
-            BiTNode *data[105];
-            int front;
-            int rear;
-        public:
-            QueueClass() {
-                front = 0;
-                rear = 0;
-            }
-            void enqueue(BiTNode *x) {
-                data[rear++] = x;
-            }
-            BiTNode *dequeue() {
-                return data[front++];
-            }
-            int isEmpty() {
-                return front == rear;
-            }
-            int getSize() {
-                return rear - front;
-            }
-    };
-    QueueClass queue;
-    queue.enqueue(T);
+    BiTreeQueue queue;
+    btq_init(&queue);
+    btq_enqueue(&queue, T);
     int depth = 0;
-    while (!queue.isEmpty()) {
-        int size = queue.getSize();
+    while (!btq_empty(&queue)) {
+        int size = btq_size(&queue);
         depth++;
         for (int i = 0; i < size; i++) {
-            BiTNode *cur = queue.dequeue();
-            if (!IsEmpty(cur->lchild)) queue.enqueue(cur->lchild);
-            if (!IsEmpty(cur->rchild)) queue.enqueue(cur->rchild);
+            BiTNode *cur = btq_dequeue(&queue);
+            if (!IsEmpty(cur->lchild)) btq_enqueue(&queue, cur->lchild);
+            if (!IsEmpty(cur->rchild)) btq_enqueue(&queue, cur->rchild);
         }
     }
     return depth;
@@ -245,37 +231,15 @@ int GetNodeCount(BiTree T) {
 
 int GetLeafCount(BiTree T) {
     if (IsEmpty(T)) return 0;
-    class QueueClass{
-        private:
-            BiTNode *data[105];
-            int front;
-            int rear;
-        public:
-            QueueClass() {
-                front = 0;
-                rear = 0;
-            }
-            void enqueue(BiTNode *x) {
-                data[rear++] = x;
-            }
-            BiTNode *dequeue() {
-                return data[front++];
-            }
-            int isEmpty() {
-                return front == rear;
-            }
-            int getSize() {
-                return rear - front;
-            }
-    };
-    QueueClass queue;
-    queue.enqueue(T);
+    BiTreeQueue queue;
+    btq_init(&queue);
+    btq_enqueue(&queue, T);
     int leafCount = 0;
-    while (!queue.isEmpty()) {
-        BiTNode *cur = queue.dequeue();
+    while (!btq_empty(&queue)) {
+        BiTNode *cur = btq_dequeue(&queue);
         if (IsEmpty(cur->lchild) && IsEmpty(cur->rchild)) leafCount++;
-        if (!IsEmpty(cur->lchild)) queue.enqueue(cur->lchild);
-        if (!IsEmpty(cur->rchild)) queue.enqueue(cur->rchild);
+        if (!IsEmpty(cur->lchild)) btq_enqueue(&queue, cur->lchild);
+        if (!IsEmpty(cur->rchild)) btq_enqueue(&queue, cur->rchild);
     }
     return leafCount;
 }
@@ -293,41 +257,19 @@ BiTree FindNode(BiTree T, ElementType x){
 
 int GetLevelNodeCount(BiTree T, int k) {
     if (IsEmpty(T)) return 0;
-    class QueueClass{
-        private:
-            BiTNode *data[105];
-            int front;
-            int rear;
-        public:
-            QueueClass() {
-                front = 0;
-                rear = 0;
-            }
-            void enqueue(BiTNode *x) {
-                data[rear++] = x;
-            }
-            BiTNode *dequeue() {
-                return data[front++];
-            }
-            int isEmpty() {
-                return front == rear;
-            }
-            int getSize() {
-                return rear - front;
-            }
-    };
-    QueueClass queue;
-    queue.enqueue(T);
+    BiTreeQueue queue;
+    btq_init(&queue);
+    btq_enqueue(&queue, T);
     int depth = 0;
-    while (!queue.isEmpty()) {
-        int size = queue.getSize();
+    while (!btq_empty(&queue)) {
+        int size = btq_size(&queue);
         depth++;
         if (depth == k) 
             return size;
         for (int i = 0; i < size; i++) {
-            BiTNode *cur = queue.dequeue();
-            if (!IsEmpty(cur->lchild)) queue.enqueue(cur->lchild);
-            if (!IsEmpty(cur->rchild)) queue.enqueue(cur->rchild);
+            BiTNode *cur = btq_dequeue(&queue);
+            if (!IsEmpty(cur->lchild)) btq_enqueue(&queue, cur->lchild);
+            if (!IsEmpty(cur->rchild)) btq_enqueue(&queue, cur->rchild);
         }
     }
     return 0;
@@ -338,37 +280,18 @@ void CountDegree(BiTree T, int* d0, int* d1, int* d2) {
         return;
     if (IsEmpty(T))
         return;
-    class QueueClass{
-        private:
-            BiTNode *data[105];
-            int front;
-            int rear;
-        public:
-            QueueClass() {
-                front = 0;
-                rear = 0;
-            }
-            void enqueue(BiTNode *x) {
-                data[rear++] = x;
-            }
-            BiTNode *dequeue() {
-                return data[front++];
-            }
-            int isEmpty() {
-                return front == rear;
-            }
-    };
-    QueueClass queue;
-    queue.enqueue(T);
-    while (!queue.isEmpty()) {
+    BiTreeQueue queue;
+    btq_init(&queue);
+    btq_enqueue(&queue, T);
+    while (!btq_empty(&queue)) {
         int count = 0;
-        BiTNode *cur = queue.dequeue();
+        BiTNode *cur = btq_dequeue(&queue);
         if (!IsEmpty(cur->lchild)) {
-            queue.enqueue(cur->lchild);
+            btq_enqueue(&queue, cur->lchild);
             count++;
         }
         if (!IsEmpty(cur->rchild)) {
-            queue.enqueue(cur->rchild);
+            btq_enqueue(&queue, cur->rchild);
             count++;
         }
         switch(count) {
@@ -432,40 +355,18 @@ void PrintLeaves(BiTree T) {
 
 int GetWidth(BiTree T) {
     if (IsEmpty(T)) return 0;
-    class QueueClass{
-        private:
-            BiTNode *data[105];
-            int front;
-            int rear;
-        public:
-            QueueClass() {
-                front = 0;
-                rear = 0;
-            }
-            void enqueue(BiTNode *x) {
-                data[rear++] = x;
-            }
-            BiTNode *dequeue() {
-                return data[front++];
-            }
-            int isEmpty() {
-                return front == rear;
-            }
-            int getSize() {
-                return rear - front;
-            }
-    };
-    QueueClass queue;
-    queue.enqueue(T);
+    BiTreeQueue queue;
+    btq_init(&queue);
+    btq_enqueue(&queue, T);
     int max = 0;
 
-    while (!queue.isEmpty()) {
-        int size = queue.getSize();
+    while (!btq_empty(&queue)) {
+        int size = btq_size(&queue);
         max = size > max ? size : max;
         for (int i = 0; i < size; i++) {
-            BiTNode *cur = queue.dequeue();
-            if (!IsEmpty(cur->lchild)) queue.enqueue(cur->lchild);
-            if (!IsEmpty(cur->rchild)) queue.enqueue(cur->rchild);
+            BiTNode *cur = btq_dequeue(&queue);
+            if (!IsEmpty(cur->lchild)) btq_enqueue(&queue, cur->lchild);
+            if (!IsEmpty(cur->rchild)) btq_enqueue(&queue, cur->rchild);
         }
     }
 
@@ -527,7 +428,7 @@ int FindPath(BiTree T, ElementType x, ElementType path[], int* pathLen) {
  * 不能先写「若左/右孩子 data==x 则返回当前结点」：当根与孩子同为 x 时，
  * 先序先命中根，答案应为 NULL；若先比孩子会得到根，与先序语义不一致。
  */
- BiTree FindParentWithParent(BiTree T, BiTree parent, ElementType x){
+BiTree FindParentWithParent(BiTree T, BiTree parent, ElementType x){
     if (T == NULL)
         return NULL;
     if (T->data == x)
@@ -699,39 +600,17 @@ int SumAllNodes(BiTree T) {
 
 int GetNodeDepth(BiTree T, ElementType x) {
     if (T == NULL) return 0;
-    class QueueClass{
-        private:
-            BiTNode *data[105];
-            int front;
-            int rear;
-        public:
-            QueueClass() {
-                front = 0;
-                rear = 0;
-            }
-            void enqueue(BiTNode *x) {
-                data[rear++] = x;
-            }
-            BiTNode *dequeue() {
-                return data[front++];
-            }
-            int isEmpty() {
-                return front == rear;
-            }
-            int getSize() {
-                return rear - front;
-            }
-    };
-    QueueClass queue;
-    queue.enqueue(T);
+    BiTreeQueue queue;
+    btq_init(&queue);
+    btq_enqueue(&queue, T);
     int depth = 1;
-    while (!queue.isEmpty()) {
-        int cnt = queue.getSize();
+    while (!btq_empty(&queue)) {
+        int cnt = btq_size(&queue);
         for (int i = 0; i < cnt; i++) {
-            BiTNode *p = queue.dequeue();
+            BiTNode *p = btq_dequeue(&queue);
             if (p->data == x) return depth;
-            if (p->lchild != NULL) queue.enqueue(p->lchild);
-            if (p->rchild != NULL) queue.enqueue(p->rchild);
+            if (p->lchild != NULL) btq_enqueue(&queue, p->lchild);
+            if (p->rchild != NULL) btq_enqueue(&queue, p->rchild);
         }
         depth++;
     }
@@ -787,39 +666,17 @@ void PrintLeafDepths(BiTree T) {
 int CountNodesAtDepth(BiTree T, int depth) {
     if (T == NULL) return 0;
     if (depth <= 0) return 0;
-    class QueueClass{
-        private:
-            BiTNode *data[105];
-            int front;
-            int rear;
-        public:
-            QueueClass() {
-                front = 0;
-                rear = 0;
-            }
-            void enqueue(BiTNode *x) {
-                data[rear++] = x;
-            }
-            BiTNode *dequeue() {
-                return data[front++];
-            }
-            int isEmpty() {
-                return front == rear;
-            }
-            int getSize() {
-                return rear - front;
-            }
-    };
-    QueueClass queue;
-    queue.enqueue(T);
+    BiTreeQueue queue;
+    btq_init(&queue);
+    btq_enqueue(&queue, T);
     int current_depth = 1;
-    while (!queue.isEmpty()) {
-        int cnt = queue.getSize();
+    while (!btq_empty(&queue)) {
+        int cnt = btq_size(&queue);
         if (current_depth == depth) return cnt;
         for (int i = 0; i < cnt; i++) {
-            BiTNode *p = queue.dequeue();
-            if (p->lchild != NULL) queue.enqueue(p->lchild);
-            if (p->rchild != NULL) queue.enqueue(p->rchild);
+            BiTNode *p = btq_dequeue(&queue);
+            if (p->lchild != NULL) btq_enqueue(&queue, p->lchild);
+            if (p->rchild != NULL) btq_enqueue(&queue, p->rchild);
         }
         current_depth++;
     }
@@ -828,44 +685,22 @@ int CountNodesAtDepth(BiTree T, int depth) {
 
 void PrintLevelNodeCounts(BiTree T) {
     if (T == NULL) return;
-    class QueueClass{
-        private:
-            BiTNode *data[105];
-            int front;
-            int rear;
-        public:
-            QueueClass() {
-                front = 0;
-                rear = 0;
-            }
-            void enqueue(BiTNode *x) {
-                data[rear++] = x;
-            }
-            BiTNode *dequeue() {
-                return data[front++];
-            }
-            int isEmpty() {
-                return front == rear;
-            }
-            int getSize() {
-                return rear - front;
-            }
-    };
-    QueueClass queue;
-    queue.enqueue(T);
+    BiTreeQueue queue;
+    btq_init(&queue);
+    btq_enqueue(&queue, T);
     int current_depth = 1;
     int first = 1;
-    while (!queue.isEmpty()) {
-        int cnt = queue.getSize();
+    while (!btq_empty(&queue)) {
+        int cnt = btq_size(&queue);
         if (first) {
             printf("%d", cnt);
             first = 0;
         } else 
             printf(" %d", cnt);
         for (int i = 0; i < cnt; i++) {
-            BiTNode *p = queue.dequeue();
-            if (p->lchild != NULL) queue.enqueue(p->lchild);
-            if (p->rchild != NULL) queue.enqueue(p->rchild);
+            BiTNode *p = btq_dequeue(&queue);
+            if (p->lchild != NULL) btq_enqueue(&queue, p->lchild);
+            if (p->rchild != NULL) btq_enqueue(&queue, p->rchild);
         }
     }
     printf("\n");
@@ -874,45 +709,23 @@ void PrintLevelNodeCounts(BiTree T) {
 
 void PrintByLevel(BiTree T) {
     if (T == NULL) return;
-    class QueueClass{
-        private:
-            BiTNode *data[105];
-            int front;
-            int rear;
-        public:
-            QueueClass() {
-                front = 0;
-                rear = 0;
-            }
-            void enqueue(BiTNode *x) {
-                data[rear++] = x;
-            }
-            BiTNode *dequeue() {
-                return data[front++];
-            }
-            int isEmpty() {
-                return front == rear;
-            }
-            int getSize() {
-                return rear - front;
-            }
-    };
-    QueueClass queue;
-    queue.enqueue(T);
+    BiTreeQueue queue;
+    btq_init(&queue);
+    btq_enqueue(&queue, T);
     int current_depth = 1;
     int first = 1;
-    while (!queue.isEmpty()) {
-        int cnt = queue.getSize();
+    while (!btq_empty(&queue)) {
+        int cnt = btq_size(&queue);
         for (int i = 0; i < cnt; i++) {
-            BiTNode *p = queue.dequeue();
+            BiTNode *p = btq_dequeue(&queue);
             if (first) {
-                first = false;
+                first = 0;
                 printf("%c", p->data);
             } else {
                 printf(" %c", p->data);
             }
-            if (p->lchild != NULL) queue.enqueue(p->lchild);
-            if (p->rchild != NULL) queue.enqueue(p->rchild);
+            if (p->lchild != NULL) btq_enqueue(&queue, p->lchild);
+            if (p->rchild != NULL) btq_enqueue(&queue, p->rchild);
         }
         printf("\n");
     }

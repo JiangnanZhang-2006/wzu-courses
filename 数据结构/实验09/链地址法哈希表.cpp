@@ -24,13 +24,17 @@ int main()
 
 /******************** 学生提交的函数将被拼接在此处 ********************/
 
-HashNode* CreateNode(int key, int value) {
+static HashNode* htCreateNode(int key, int value) {
     HashNode* node = (HashNode*)malloc(sizeof(HashNode));
     if (node == NULL) return NULL;
     node->key = key;
     node->value = value;
     node->next = NULL;
     return node;
+}
+
+HashNode* CreateNode(int key, int value) {
+    return htCreateNode(key, value);
 }
 
 HashTable* CreateTable(int size) {
@@ -50,16 +54,20 @@ HashTable* CreateTable(int size) {
     return table;
 }
 
-int HashFunc(HashTable* ht, int key) {
+static int htHashFunc(HashTable* ht, int key) {
     if (ht == NULL) return -1;
     return abs(key) % ht->size;
 }
 
+int HashFunc(HashTable* ht, int key) {
+    return htHashFunc(ht, key);
+}
+
 Status Insert(HashTable* ht, int key, int value) {
     if (ht == NULL) return ERROR;
-    int index = HashFunc(ht, key);
+    int index = htHashFunc(ht, key);
     if (index == -1) return ERROR;
-    HashNode* node = CreateNode(key, value);
+    HashNode* node = htCreateNode(key, value);
     if (node == NULL) return ERROR;
     HashNode* cur = ht->buckets[index];
     while (cur != NULL) {
@@ -76,9 +84,9 @@ Status Insert(HashTable* ht, int key, int value) {
     return OK;
 }
 
-HashNode* Search(HashTable* ht, int key) {
+static HashNode* htSearch(HashTable* ht, int key) {
     if (ht == NULL) return NULL;
-    int index = HashFunc(ht, key);
+    int index = htHashFunc(ht, key);
     if (index == -1) return NULL;
     HashNode* cur = ht->buckets[index];
     while (cur != NULL) {
@@ -88,16 +96,20 @@ HashNode* Search(HashTable* ht, int key) {
     return NULL;
 }
 
+HashNode* Search(HashTable* ht, int key) {
+    return htSearch(ht, key);
+}
+
 int GetValue(HashTable* ht, int key) {
     if (ht == NULL) return -1;
-    HashNode* node = Search(ht, key);
+    HashNode* node = htSearch(ht, key);
     if (node == NULL) return -1;
     return node->value;
 }
 
 Status Delete(HashTable* ht, int key) {
     if (ht == NULL) return ERROR;
-    int index = HashFunc(ht, key);
+    int index = htHashFunc(ht, key);
     if (index == -1) return ERROR;
     HashNode* cur = ht->buckets[index];
     HashNode* prev = NULL;
@@ -120,7 +132,7 @@ Status Delete(HashTable* ht, int key) {
 
 int Contains(HashTable* ht, int key) {
     if (ht == NULL) return 0;
-    HashNode* node = Search(ht, key);
+    HashNode* node = htSearch(ht, key);
     if (node == NULL) return 0;
     return 1;
 }
@@ -140,7 +152,7 @@ float GetLoadFactor(HashTable* ht) {
     return (float)ht->count / ht->size;
 }
 
-int GetChainLength(HashTable* ht, int index) {
+static int htGetChainLength(HashTable* ht, int index) {
     if (ht == NULL || index < 0 || index >= ht->size) return -1;
     int length = 0;
     HashNode* cur = ht->buckets[index];
@@ -151,20 +163,41 @@ int GetChainLength(HashTable* ht, int index) {
     return length;
 }
 
+int GetChainLength(HashTable* ht, int index) {
+    return htGetChainLength(ht, index);
+}
+
 int GetMaxChainLength(HashTable* ht) {
     if (ht == NULL) return 0;
     int maxLength = 0;
     for (int i = 0; i < ht->size; i++) {
-        int length = GetChainLength(ht, i);
+        int length = htGetChainLength(ht, i);
         if (length > maxLength) maxLength = length;
     }
     return maxLength;
 }
 
+static HashTable* htCreateTable(int size) {
+    if (size <= 0) return NULL;
+    HashTable* table = (HashTable*)malloc(sizeof(HashTable));
+    if (table == NULL) return NULL;
+    table->buckets = (HashNode**)malloc(sizeof(HashNode*) * size);
+    if (table->buckets == NULL) {
+        free(table);
+        return NULL;
+    }
+    for (int i = 0; i < size; i++) {
+        table->buckets[i] = NULL;
+    }
+    table->size = size;
+    table->count = 0;
+    return table;
+}
+
 Status Resize(HashTable* ht, int newSize) {
     if (ht == NULL || newSize <= 0) return ERROR;
     if (newSize == ht->size) return OK;
-    HashTable* newTable = CreateTable(newSize);
+    HashTable* newTable = htCreateTable(newSize);
     if (newTable == NULL) return ERROR;
     for (int i = 0; i < ht->size; i++) {
         HashNode* cur = ht->buckets[i];

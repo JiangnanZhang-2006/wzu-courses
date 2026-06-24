@@ -20,7 +20,7 @@ int main()
 
 /******************** 学生提交的函数将被拼接在此处 ********************/
 
-BSTNode* CreateNode(int val) {
+static BSTNode* bstCreateNode(int val) {
     BSTNode* node = (BSTNode*)malloc(sizeof(BSTNode));
     if (node == NULL) return NULL;
     node->data = val;
@@ -29,6 +29,10 @@ BSTNode* CreateNode(int val) {
     node->right = NULL;
     node->parent = NULL;
     return node;
+}
+
+BSTNode* CreateNode(int val) {
+    return bstCreateNode(val);
 }
 
 Status Insert(BSTNode** root, int val) {
@@ -44,10 +48,9 @@ Status Insert(BSTNode** root, int val) {
     if (node != NULL) {
         node->count++;
         return ERROR;
-        //ymc说的
     }
 
-    BSTNode* newNode = CreateNode(val);
+    BSTNode* newNode = bstCreateNode(val);
     if (newNode == NULL) return ERROR;
 
     if (parent == NULL) {
@@ -74,12 +77,16 @@ Status SetParent(BSTNode* root) {
     return OK;
 }
 
-BSTNode* Search(BSTNode* root, int val) {
+static BSTNode* bstSearch(BSTNode* root, int val) {
     if (root == NULL) return NULL;
     if (root->data == val) return root;
-    if (val < root->data) return Search(root->left, val);
-    else if (val > root->data) return Search(root->right, val);
+    if (val < root->data) return bstSearch(root->left, val);
+    else if (val > root->data) return bstSearch(root->right, val);
     else return NULL;
+}
+
+BSTNode* Search(BSTNode* root, int val) {
+    return bstSearch(root, val);
 }
 
 void InOrder(BSTNode* root, int* result, int* cnt) {
@@ -99,22 +106,30 @@ int GetHeight(BSTNode* root) {
     return leftHeight > rightHeight ? leftHeight + 1 : rightHeight + 1;
 }
 
-BSTNode* GetMin(BSTNode* root) {
+static BSTNode* bstGetMin(BSTNode* root) {
     if (root == NULL) return NULL;
     if (root->left == NULL) return root;
-    return GetMin(root->left);
+    return bstGetMin(root->left);
+}
+
+static BSTNode* bstGetMax(BSTNode* root) {
+    if (root == NULL) return NULL;
+    if (root->right == NULL) return root;
+    return bstGetMax(root->right);
+}
+
+BSTNode* GetMin(BSTNode* root) {
+    return bstGetMin(root);
 }
 
 BSTNode* GetMax(BSTNode* root) {
-    if (root == NULL) return NULL;
-    if (root->right == NULL) return root;
-    return GetMax(root->right);
+    return bstGetMax(root);
 }
 
 BSTNode* Predecessor(BSTNode* node) {
     if (node == NULL) return NULL;
     if (node->left != NULL) {
-        return GetMax(node->left);
+        return bstGetMax(node->left);
     }
     BSTNode* parent = node->parent;
     while (parent != NULL && node == parent->left) {
@@ -127,7 +142,7 @@ BSTNode* Predecessor(BSTNode* node) {
 BSTNode* Successor(BSTNode* node) {
     if (node == NULL) return NULL;
     if (node->right != NULL) {
-        return GetMin(node->right);
+        return bstGetMin(node->right);
     }
     BSTNode* parent = node->parent;
     while (parent != NULL && node == parent->right) {
@@ -150,7 +165,7 @@ int CountTotal(BSTNode* root) {
 
 int GetCount(BSTNode* root, int val) {
     if (root == NULL) return 0;
-    BSTNode* node = Search(root, val);
+    BSTNode* node = bstSearch(root, val);
     if (node == NULL) return 0;
     return node->count;
 }
@@ -170,7 +185,7 @@ int IsBST(BSTNode* root) {
 }
 
 
-void ReplaceNodeInParent(BSTNode** root, BSTNode* node, BSTNode* child) {
+static void ReplaceNodeInParent(BSTNode** root, BSTNode* node, BSTNode* child) {
     if (node->parent == NULL) {
         *root = child;
     } else if (node->parent->left == node) {
@@ -199,7 +214,7 @@ Status Delete(BSTNode** root, int val) {
     }
 
     if (node->left != NULL && node->right != NULL) {
-        BSTNode* succ = GetMin(node->right);
+        BSTNode* succ = bstGetMin(node->right);
         node->data = succ->data;
         node->count = succ->count;
         BSTNode* child = succ->right;
@@ -230,7 +245,7 @@ Status DeleteByPred(BSTNode** root, int val) {
     }
 
     if (node->left != NULL && node->right != NULL) {
-        BSTNode* pred = GetMax(node->left);
+        BSTNode* pred = bstGetMax(node->left);
         node->data = pred->data;
         node->count = pred->count;
         BSTNode* child = pred->left;

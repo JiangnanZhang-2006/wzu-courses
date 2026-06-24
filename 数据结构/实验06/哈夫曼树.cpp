@@ -155,16 +155,16 @@ HuffmanTree* CreateHuffmanTree(char chars[], int weights[], int n) {
 
 CodeTable* CreateCodeTable(HuffmanTree* ht) {
     if (ht == NULL || ht->nodes == NULL || ht->n <= 0) return NULL;
-    int n = ht->n;
+    int leafNum = ht->n;
     CodeTable* pct = (CodeTable*)malloc(sizeof(CodeTable));
     if (pct == NULL) return NULL;
-    pct->n = n;
-    pct->codes = (CodeNode*)malloc((size_t)n * sizeof(CodeNode));
+    pct->n = leafNum;
+    pct->codes = (CodeNode*)malloc((size_t)leafNum * sizeof(CodeNode));
     if (pct->codes == NULL) {
         free(pct);
         return NULL;
     }
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < leafNum; i++) {
         pct->codes[i].ch = ht->nodes[i].data;
         char tmp[256];
         int len = 0;
@@ -194,7 +194,7 @@ int IsEmpty(HuffmanTree* ht) {
 }
 
 void PrintHuffmanTree(HuffmanTree* ht) {
-    if (IsEmpty(ht)) return;
+    if (ht == NULL || ht->nodes == NULL || ht->n <= 0) return;
     for (int i = 0; i < ht->size; i++) {
         if (i < ht->n) printf("%d %c %d %d %d %d\n", i, ht->nodes[i].data, ht->nodes[i].weight, ht->nodes[i].parent, ht->nodes[i].lchild, ht->nodes[i].rchild);
         else printf("%d - %d %d %d %d\n", i, ht->nodes[i].weight, ht->nodes[i].parent, ht->nodes[i].lchild, ht->nodes[i].rchild);
@@ -218,7 +218,7 @@ static int SubtreeHeight(HTNode* nodes, int i) {
 }
 
 int GetHeight(HuffmanTree* ht) {
-    if (IsEmpty(ht)) return 0;
+    if (ht == NULL || ht->nodes == NULL || ht->n <= 0) return 0;
     int root = -1;
     for (int k = 0; k < ht->size; k++) {
         if (ht->nodes[k].parent == -1) {
@@ -231,12 +231,12 @@ int GetHeight(HuffmanTree* ht) {
 }
 
 int GetNodeCount(HuffmanTree* ht) {
-    if (IsEmpty(ht)) return 0;
+    if (ht == NULL || ht->nodes == NULL || ht->n <= 0) return 0;
     return ht->size;
 }
 
 int GetWPL(HuffmanTree* ht) {
-    if (IsEmpty(ht)) return 0;
+    if (ht == NULL || ht->nodes == NULL || ht->n <= 0) return 0;
     int wpl = 0;
     for (int i = 0; i < ht->n; i++) {
         int edges = 0;
@@ -312,7 +312,7 @@ char DecodeChar(HuffmanTree* ht, const char* code, int* pos) {
 }
 
 char* DecodeString(HuffmanTree* ht, const char* code) {
-    if (IsEmpty(ht) || code == NULL) return NULL;
+    if (ht == NULL || ht->nodes == NULL || ht->n <= 0 || code == NULL) return NULL;
     char *s = (char*)malloc(sizeof(char) * 1000);
     if (s == NULL) return NULL;
     int codePos = 0;

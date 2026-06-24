@@ -61,13 +61,13 @@ SqQueue* InitQueue(void) {
     return Q;
 }
 
-int IsEmpty(const SqQueue* Q) {
+static int IsEmpty(const SqQueue* Q) {
     if (Q == NULL) return 1;
     if (Q->front == Q->rear) return 1;
     return 0;
 }
 
-int IsFull(const SqQueue* Q) {
+static int IsFull(const SqQueue* Q) {
     if (Q == NULL) return 0;
     if ((Q->rear + 1) % MAXSIZE == Q->front) return 1;
     return 0;

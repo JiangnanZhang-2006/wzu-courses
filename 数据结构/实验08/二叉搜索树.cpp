@@ -29,7 +29,7 @@ BSTNode* CreateNode(int val) {
     return node;
 }
 
-Status InsertHelper(BSTNode** node, int val, BSTNode* parent) {
+static Status InsertHelper(BSTNode** node, int val, BSTNode* parent) {
     if (*node == NULL) {
         *node = CreateNode(val);
         if (*node == NULL) return ERROR;
@@ -82,22 +82,30 @@ void InOrder(BSTNode* root, int* result, int* cnt) {
     InOrder(root->right, result, cnt);
 }
 
-BSTNode* GetMin(BSTNode* root) {
+static BSTNode* bstGetMin(BSTNode* root) {
     if (root == NULL) return NULL;
     if (root->left == NULL) return root;
-    return GetMin(root->left);
+    return bstGetMin(root->left);
+}
+
+static BSTNode* bstGetMax(BSTNode* root) {
+    if (root == NULL) return NULL;
+    if (root->right == NULL) return root;
+    return bstGetMax(root->right);
+}
+
+BSTNode* GetMin(BSTNode* root) {
+    return bstGetMin(root);
 }
 
 BSTNode* GetMax(BSTNode* root) {
-    if (root == NULL) return NULL;
-    if (root->right == NULL) return root;
-    return GetMax(root->right);
+    return bstGetMax(root);
 }
 
 BSTNode* Predecessor(BSTNode* node) {
     if (node == NULL) return NULL;
     if (node->left != NULL) {
-        return GetMax(node->left);
+        return bstGetMax(node->left);
     }
     BSTNode* parent = node->parent;
     while (parent != NULL && node == parent->left) {
@@ -110,7 +118,7 @@ BSTNode* Predecessor(BSTNode* node) {
 BSTNode* Successor(BSTNode* node) {
     if (node == NULL) return NULL;
     if (node->right != NULL) {
-        return GetMin(node->right);
+        return bstGetMin(node->right);
     }
     BSTNode* parent = node->parent;
     while (parent != NULL && node == parent->right) {
@@ -146,7 +154,7 @@ int IsBST(BSTNode* root) {
     return 1;
 }
 
-void ReplaceNodeInParent(BSTNode** root, BSTNode* node, BSTNode* child) {
+static void ReplaceNodeInParent(BSTNode** root, BSTNode* node, BSTNode* child) {
     if (node->parent == NULL) {
         *root = child;
     } else if (node->parent->left == node) {
@@ -170,7 +178,7 @@ Status Delete(BSTNode** root, int val) {
     if (node == NULL) return ERROR;
 
     if (node->left != NULL && node->right != NULL) {
-        BSTNode* succ = GetMin(node->right);
+        BSTNode* succ = bstGetMin(node->right);
         node->data = succ->data;
         BSTNode* child = succ->right;
         ReplaceNodeInParent(root, succ, child);
@@ -195,7 +203,7 @@ Status DeleteByPred(BSTNode** root, int val) {
     if (node == NULL) return ERROR;
 
     if (node->left != NULL && node->right != NULL) {
-        BSTNode* pred = GetMax(node->left);
+        BSTNode* pred = bstGetMax(node->left);
         node->data = pred->data;
         BSTNode* child = pred->left;
         ReplaceNodeInParent(root, pred, child);

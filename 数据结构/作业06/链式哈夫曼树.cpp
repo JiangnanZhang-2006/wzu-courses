@@ -175,7 +175,7 @@ int GetLeafCount(HuffmanTree root) {
 
 int GetWPLHelper(HuffmanTree node, int depth) {
     if (node == NULL) return 0;
-    if (IsEmpty(node->lchild) && IsEmpty(node->rchild)) return depth * node->weight;
+    if (node->lchild == NULL && node->rchild == NULL) return depth * node->weight;
     return GetWPLHelper(node->lchild, depth + 1) + GetWPLHelper(node->rchild, depth + 1);
 }
 

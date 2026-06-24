@@ -78,13 +78,17 @@ void SiftDown(MaxHeap* h, int i) {
     }
 }
 
-int DeleteMax(MaxHeap* h) {
+static int heapDeleteMax(MaxHeap* h) {
     if (h == NULL || IsEmpty(h)) return -1;
     int max = h->data[1];
     h->data[1] = h->data[h->size];
     h->size--;
     SiftDown(h, 1);
     return max;
+}
+
+int DeleteMax(MaxHeap* h) {
+    return heapDeleteMax(h);
 }
 
 MaxHeap* BuildHeap(int arr[], int n, int capacity) {
@@ -105,7 +109,7 @@ void HeapSort(MaxHeap* h, int* result) {
     if (h == NULL || result == NULL) return;
     int n = h->size;
     for (int i = 0; i < n; i++) {
-        result[i] = DeleteMax(h);
+        result[i] = heapDeleteMax(h);
     }
 }
 
