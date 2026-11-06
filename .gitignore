@@ -37,3 +37,9 @@ tmp/
 # agent
 .cursor/
 AGENTS.md
+
+# 面向对象题目各自的 Java 工程元数据
+面向对象的程序设计/**/.project
+面向对象的程序设计/**/.classpath
+面向对象的程序设计/**/.settings/
+面向对象的程序设计/**/bin/
